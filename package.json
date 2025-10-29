@@ -1,0 +1,24 @@
+{
+  "name": "basic-mock-e-com-cart",
+  "version": "1.0.0",
+  "description": "Full Stack Mock E-Com Cart",
+  "main": "index.js",
+  "scripts": {
+  "frontend": "npm start --prefix frontend",
+  "backend": "npm run dev --prefix backend",
+  "dev": "concurrently -n \"FRONTEND,BACKEND,DATABASE\" -c \"yellow,blue\" \"npm start --prefix frontend\" \"npm start --prefix backend\""
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mohdsohail7/Basic-Mock-E-Com-Cart.git"
+  },
+  "author": "Mohd Sohail",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mohdsohail7/Basic-Mock-E-Com-Cart/issues"
+  },
+  "homepage": "https://github.com/Mohdsohail7/Basic-Mock-E-Com-Cart#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

@@ -1,9 +1,25 @@
 const { runAsync, allAsync, getAsync } = require("../db/database");
 
+
+// Simple email regex for validation
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // POST /api/checkout
 exports.checkout = async (req, res) => {
   try {
     const { cartItems, name, email } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Email is invalid" });
+    }
+
     let totalCents = 0;
 
     // If cart items are provided in the request body
@@ -29,10 +45,10 @@ exports.checkout = async (req, res) => {
     }
 
     // Create a mock receipt
-    const note = `Mock checkout — ${name || "Guest"}`;
+    const note = `Mock checkout — ${name}`;
     const result = await runAsync(
       `INSERT INTO receipts (name, email, total_cents, note) VALUES (?,?,?,?)`,
-      [name || null, email || null, totalCents, note]
+      [name, email, totalCents, note]
     );
 
     // Clear the cart

@@ -19,8 +19,15 @@ app.use("/api", checkoutRoutes);
 
 const PORT = process.env.PORT || 4000;
 
-initDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-  });
-});
+(async () => {
+  try {
+    await initDb();
+    console.log("Database initialized successfully.");
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("Failed to initialize database:", err);
+    process.exit(1); // stop server if DB init fails
+  }
+})();

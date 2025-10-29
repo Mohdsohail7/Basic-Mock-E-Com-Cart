@@ -82,3 +82,25 @@ exports.getCart = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch cart" });
   }
 };
+
+// PUT /api/cart/:id { qty }
+exports.updateCartItem = async (req, res) => {
+  try {
+    const { qty } = req.body;
+    const id = req.params.id;
+
+    if (!qty || qty <= 0) return res.status(400).json({ error: "Qty must be > 0" });
+
+    const item = await getAsync(`SELECT * FROM cart_items WHERE id = ?`, [id]);
+    if (!item) return res.status(404).json({ error: "Cart item not found" });
+
+    await runAsync(`UPDATE cart_items SET qty = ? WHERE id = ?`, [qty, id]);
+    const updated = await getAsync(`SELECT * FROM cart_items WHERE id = ?`, [id]);
+
+    res.json({ message: "Quantity updated", item: updated });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update cart item" });
+  }
+};
+

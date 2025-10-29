@@ -4,7 +4,7 @@ const { allAsync } = require("../db/database")
 exports.getProducts = async (req, res) => {
     try {
         const products = await allAsync(
-            `SELECT id, name, description, price_cents, sku FROM products`
+            `SELECT id, name, description, price_cents, sku, image_url FROM products`
         );
         res.json(products.map((product) => ({
             ...product,
