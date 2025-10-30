@@ -41,174 +41,37 @@ async function initDb() {
   )`);
 
   await runAsync(`CREATE TABLE IF NOT EXISTS cart_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER NOT NULL,
-    qty INTEGER NOT NULL,
-    added_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY(product_id) REFERENCES products(id)
-  )`);
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  product_id INTEGER NOT NULL,
+  user_id INTEGER,
+  qty INTEGER NOT NULL,
+  added_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY(product_id) REFERENCES products(id),
+  FOREIGN KEY(user_id) REFERENCES users(id)
+)`);
 
   await runAsync(`CREATE TABLE IF NOT EXISTS receipts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  name TEXT,
+  email TEXT,
+  total_cents INTEGER NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  note TEXT,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+)`);
+
+  await runAsync(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
-    email TEXT,
-    total_cents INTEGER NOT NULL,
-    created_at TEXT DEFAULT (datetime('now')),
-    note TEXT
+    email TEXT UNIQUE
   )`);
 
   const count = await getAsync(`SELECT COUNT(*) as c FROM products`);
   if (count.c === 0) {
-    const products = [
-  {
-    name: "Vibe T-Shirt",
-    description: "Comfort cotton tee",
-    price_cents: 1999,
-    sku: "VIBE-TSH-001",
-    image_url: "https://picsum.photos/seed/clothing_tshirt_white/400/400"
-  },
-  {
-    name: "Vibe Hoodie",
-    description: "Warm pullover hoodie",
-    price_cents: 3999,
-    sku: "VIBE-HOOD-001",
-    image_url: "https://picsum.photos/seed/clothing_hoodie_gray/400/400"
-  },
-  {
-    name: "Vibe Cap",
-    description: "Adjustable cap",
-    price_cents: 999,
-    sku: "VIBE-CAP-001",
-    image_url: "https://picsum.photos/seed/accessory_baseball_cap/400/400"
-  },
-  {
-    name: "Vibe Sneakers",
-    description: "Casual sneakers",
-    price_cents: 5999,
-    sku: "VIBE-SNK-001",
-    image_url: "https://picsum.photos/seed/footwear_sneakers_casual/400/400"
-  },
-  {
-    name: "Vibe Mug",
-    description: "Ceramic mug 350ml",
-    price_cents: 799,
-    sku: "VIBE-MUG-001",
-    image_url: "https://picsum.photos/seed/home_ceramic_mug/400/400"
-  },
-  {
-    name: "Vibe Tote Bag",
-    description: "Canvas eco tote bag",
-    price_cents: 1499,
-    sku: "VIBE-TOTE-001",
-    image_url: "https://picsum.photos/seed/accessory_canvas_tote/400/400"
-  },
-  {
-    name: "Vibe Water Bottle",
-    description: "Stainless steel bottle 500ml",
-    price_cents: 1899,
-    sku: "VIBE-BOT-001",
-    image_url: "https://picsum.photos/seed/accessory_water_bottle/400/400"
-  },
-  {
-    name: "Vibe Joggers",
-    description: "Soft fleece jogger pants",
-    price_cents: 3499,
-    sku: "VIBE-JOG-001",
-    image_url: "https://picsum.photos/seed/clothing_jogger_pants/400/400"
-  },
-  {
-    name: "Vibe Socks",
-    description: "Pack of 3 cotton socks",
-    price_cents: 1299,
-    sku: "VIBE-SCK-001",
-    image_url: "https://picsum.photos/seed/clothing_socks_pack/400/400"
-  },
-  {
-    name: "Vibe Phone Case",
-    description: "Protective phone case",
-    price_cents: 1599,
-    sku: "VIBE-PHC-001",
-    image_url: "https://picsum.photos/seed/accessory_phone_case/400/400"
-  },
-  {
-    name: "Vibe Keychain",
-    description: "Metal logo keychain",
-    price_cents: 499,
-    sku: "VIBE-KEY-001",
-    image_url: "https://picsum.photos/seed/accessory_metal_keychain/400/400"
-  },
-  {
-    name: "Vibe Notebook",
-    description: "Hardcover ruled notebook",
-    price_cents: 1099,
-    sku: "VIBE-NBK-001",
-    image_url: "https://picsum.photos/seed/stationery_notebook_ruled/400/400"
-  },
-  {
-    name: "Vibe Backpack",
-    description: "Durable 20L backpack",
-    price_cents: 4599,
-    sku: "VIBE-BPK-001",
-    image_url: "https://picsum.photos/seed/accessory_travel_backpack/400/400"
-  },
-  {
-    name: "Vibe Beanie",
-    description: "Warm knitted beanie",
-    price_cents: 1499,
-    sku: "VIBE-BEA-001",
-    // More specific seed for Beanie
-    image_url: "https://picsum.photos/seed/accessory_knitted_beanie/400/400"
-  },
-  {
-    name: "Vibe Sunglasses",
-    description: "UV-protection sunglasses",
-    price_cents: 2499,
-    sku: "VIBE-SUN-001",
-    image_url: "https://picsum.photos/seed/accessory_uv_sunglasses/400/400"
-  },
-  {
-    name: "Vibe Poster",
-    description: "Decorative wall poster",
-    price_cents: 999,
-    sku: "VIBE-PST-001",
-    image_url: "https://picsum.photos/seed/art_wall_poster_deco/400/400"
-  },
-  {
-    name: "Vibe Mouse Pad",
-    description: "Smooth gaming mouse pad",
-    price_cents: 1299,
-    sku: "VIBE-MPD-001",
-    image_url: "https://picsum.photos/seed/tech_gaming_mousepad/400/400"
-  },
-  {
-    name: "Vibe Hoodie (Zip)",
-    description: "Zipper style fleece hoodie",
-    price_cents: 4199,
-    sku: "VIBE-HOOD-002",
-    image_url: "https://picsum.photos/seed/clothing_zip_fleece/400/400"
-  },
-  {
-    name: "Vibe Sweatshirt",
-    description: "Classic crewneck sweatshirt",
-    price_cents: 3299,
-    sku: "VIBE-SWT-001",
-    image_url: "https://picsum.photos/seed/clothing_crewneck_sweat/400/400"
-  },
-  {
-    name: "Vibe Blanket",
-    description: "Soft fleece throw blanket",
-    price_cents: 2799,
-    sku: "VIBE-BLN-001",
-    image_url: "https://picsum.photos/seed/home_fleece_blanket/400/400"
-  },
-];
-
-
-    const insert = `INSERT INTO products (name, description, price_cents, sku, image_url) VALUES (?,?,?,?,?)`;
-    for (const p of products) {
-      await runAsync(insert, [p.name, p.description, p.price_cents, p.sku, p.image_url]);
-    }
-    console.log("Seeded default products.");
+    console.log(
+      "No products found. Consider using Fake Store API integration or seeding default products."
+    );
   }
 }
 

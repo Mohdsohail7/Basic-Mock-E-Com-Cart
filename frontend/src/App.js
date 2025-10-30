@@ -5,11 +5,12 @@ import {
   addToCartApi,
   deleteCartItemApi,
   checkoutApi,
+  updateCartQty
 } from "./utils/api";
 import ProductGrid from "./components/ProductGrid";
 import CartDrawer from "./components/CartDrawer";
 import CheckoutModal from "./components/CheckoutModal";
-import { updateCartQty } from "./utils/api";
+
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -17,15 +18,31 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [receipt, setReceipt] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   async function loadProducts() {
-    const res = await fetchProducts();
-    setProducts(res || []);
+    try {
+      setLoading(true);
+      const res = await fetchProducts();
+      if (!res) throw new Error("Failed to load products");
+      setProducts(res);
+    } catch (error) {
+      console.error(error);
+      setError("Unable to load products. Please try again later.");
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function loadCart() {
-    const res = await fetchCart();
-    setCart(res || { items: [], total: 0 });
+    try {
+      const res = await fetchCart();
+      setCart(res || { items: [], total: 0 });
+    } catch (error) {
+      console.error("Failed to load cart:", error);
+      setError("Unable to load cart.");
+    }
   }
 
   useEffect(() => {
@@ -34,29 +51,46 @@ export default function App() {
   }, []);
 
   async function addToCart(productId) {
-    await addToCartApi({ productId, qty: 1 });
-    await loadCart();
-    setCartOpen(true);
+    try {
+      await addToCartApi({ productId, qty: 1 });
+      await loadCart();
+      setCartOpen(true);
+    } catch (error) {
+      setError("Failed to add item to cart.");
+    }
   }
 
   async function updateCartQuantity(cartItemId, qty) {
   if (qty < 1) return; 
-  await updateCartQty({ cartItemId, qty });
-  await loadCart();
+  try {
+    await updateCartQty({ cartItemId, qty });
+    await loadCart();
+  } catch (error) {
+    setError("Failed to update quantity.");
+  }
 }
 
 
   async function removeFromCart(cartItemId) {
-    await deleteCartItemApi(cartItemId);
-    await loadCart();
+    try {
+      await deleteCartItemApi(cartItemId);
+      await loadCart();
+    } catch (error) {
+      setError("Failed to remove item from cart.");
+    }
   }
 
   async function onCheckout(data) {
-    const res = await checkoutApi({ name: data.name, email: data.email });
-    setReceipt(res.receipt);
-    setCheckoutOpen(false);
-    setCartOpen(false);
-    await loadCart();
+    try {
+      const res = await checkoutApi({ name: data.name, email: data.email });
+      setReceipt(res.receipt);
+      setCheckoutOpen(false);
+      setCartOpen(false);
+      await loadCart();
+    } catch (error) {
+      console.error("Checkout failed:", error);
+      setError("Checkout failed. Please try again.");
+    }
   }
 
   return (
@@ -74,7 +108,15 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <ProductGrid products={products} onAdd={addToCart} />
+        {loading && (
+          <div className="text-center text-gray-600 py-8">Loading products...</div>
+        )}
+        {error && (
+          <div className="text-center text-red-500 py-4">{error}</div>
+        )}
+        {!loading && !error && products.length > 0 && (
+          <ProductGrid products={products} onAdd={addToCart} />
+        )}
       </main>
 
       <CartDrawer
@@ -100,8 +142,8 @@ export default function App() {
             <p>Name: {receipt.name || "Guest"}</p>
             <p>Email: {receipt.email}</p>
             <p>Total: ${receipt.total}</p>
-            <p className="text-sm text-gray-500">{new Date(receipt.timestamp).toLocaleString()}</p>
-            <p className="mt-2 text-gray-700">{receipt.note}</p>
+            <p className="text-sm text-gray-500">{new Date(receipt.created_at).toLocaleString()}</p>
+            < p className="mt-2 text-gray-700">{receipt.note}</p>
             <div className="mt-4 flex justify-end">
               <button
                 onClick={() => setReceipt(null)}
